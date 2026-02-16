@@ -8,7 +8,7 @@
 	</p>
 
 	<a
-		href="https://discord.com/oauth2/authorize?client_id=1465280058628247625"
+		href="https://discord.com/oauth2/authorize?client_id=1465280058628247625&permissions=277025540096&scope=bot%20applications.commands"
 		class="cta-button flex items-center gap-2 rounded-lg p-4 text-lg font-semibold text-white transition-transform hover:scale-105 hover:shadow-lg"
 		style="background: var(--color-discord-blurple);"
 	>
