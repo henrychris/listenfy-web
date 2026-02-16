@@ -7,9 +7,8 @@
 		insights.
 	</p>
 
-	<!-- todo: add client ID here -->
 	<a
-		href="https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID"
+		href="https://discord.com/oauth2/authorize?client_id=1465280058628247625"
 		class="cta-button flex items-center gap-2 rounded-lg p-4 text-lg font-semibold text-white transition-transform hover:scale-105 hover:shadow-lg"
 		style="background: var(--color-discord-blurple);"
 	>

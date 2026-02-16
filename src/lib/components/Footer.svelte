@@ -8,9 +8,8 @@
 	<div class="mx-auto w-full max-w-4xl">
 		<p>&copy; {year} Listenfy. Not affiliated with Spotify or Discord.</p>
 		<div class="flex justify-center gap-4">
-			<!-- todo: add server link -->
 			<a
-				href="https://discord.gg/your-support-server"
+				href="https://discord.gg/drc55k7Vqr"
 				class=" text-text-secondary transition-colors hover:text-text-primary"
 			>
 				Support
