@@ -11,7 +11,7 @@
 			description: 'Disconnect your Spotify account and remove your data'
 		},
 		{
-			command: '/stats',
+			command: '/personalstats',
 			description: 'View your personal listening stats for the past week'
 		},
 		{

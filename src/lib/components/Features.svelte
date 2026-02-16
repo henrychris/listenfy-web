@@ -12,7 +12,7 @@
 			icon: '👤',
 			title: 'Personal Insights',
 			description:
-				'Check your own stats anytime with the /stats command. See your top 5 tracks and artists.'
+				'Check your own stats anytime with the /personalstats command. See your top 5 tracks and artists.'
 		},
 		{
 			icon: '⚡',
