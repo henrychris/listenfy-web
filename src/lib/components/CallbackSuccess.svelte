@@ -4,9 +4,10 @@
 	interface SuccessProps {
 		spotifyUser?: string;
 		message?: string;
+		serverId?: number;
 	}
 
-	let { spotifyUser, message }: SuccessProps = $props();
+	let { spotifyUser, message, serverId }: SuccessProps = $props();
 
 	onMount(() => {
 		// Auto-close after 5 seconds if opened in popup
@@ -58,7 +59,7 @@
 
 		<div class="mt-8 flex flex-wrap justify-center gap-4 sm:flex-col">
 			<a
-				href="discord://-"
+				href="https://discord.com/channels/{serverId}"
 				class="inline-block rounded-lg bg-discord-blurple px-8 py-4 font-semibold text-white no-underline transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(117,0,247,0.3)]"
 			>
 				Return to Discord

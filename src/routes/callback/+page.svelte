@@ -17,7 +17,11 @@
 
 <div class="flex min-h-screen items-center justify-center p-8 sm:p-4">
 	{#if data.success}
-		<CallbackSuccess spotifyUser={data.data?.spotifyUser} message={data.message} />
+		<CallbackSuccess
+			spotifyUser={data.data?.spotifyUser}
+			message={data.message}
+			serverId={data.data?.discordGuildId}
+		/>
 	{:else}
 		<CallbackError message={data.message} errors={data.errors} />
 	{/if}

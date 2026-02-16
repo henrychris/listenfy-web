@@ -87,7 +87,7 @@
 
 		<div class="mt-8 flex flex-wrap justify-center gap-4 sm:flex-col">
 			<a
-				href="discord://-"
+				href="https://discord.com/channels/@me"
 				class="inline-block rounded-lg bg-discord-blurple px-8 py-4 font-semibold text-white no-underline transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(117,0,247,0.3)]"
 			>
 				Return to Discord
