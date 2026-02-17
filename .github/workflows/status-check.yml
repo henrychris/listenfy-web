@@ -22,5 +22,6 @@ jobs:
       - name: run check
         env:
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
         run: |
           bun run check
