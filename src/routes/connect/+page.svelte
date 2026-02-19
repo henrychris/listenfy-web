@@ -49,11 +49,6 @@
 			return;
 		}
 
-		if (clientId.length !== 32) {
-			error = 'Client ID should be 32 characters long';
-			return;
-		}
-
 		if (!token) {
 			error = 'Invalid connection link. Please use /connect in Discord.';
 			return;
