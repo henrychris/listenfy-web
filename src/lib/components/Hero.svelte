@@ -1,3 +1,7 @@
+<script>
+	import { PUBLIC_DISCORD_CLIENT_ID } from '$env/static/public';
+</script>
+
 <section class="flex flex-col items-center gap-12 p-12 text-center">
 	<h1 class="hero-title gradient text-5xl font-bold md:text-7xl">
 		Track Your Server's Spotify Stats
@@ -8,9 +12,9 @@
 	</p>
 
 	<a
-		href="https://discord.com/oauth2/authorize?client_id=1465280058628247625&permissions=277025540096&scope=bot%20applications.commands"
-		class="cta-button flex items-center gap-2 rounded-lg p-4 text-lg font-semibold text-white transition-transform hover:scale-105 hover:shadow-lg"
-		style="background: var(--color-discord-blurple);"
+		href="https://discord.com/oauth2/authorize?client_id={PUBLIC_DISCORD_CLIENT_ID}&permissions=277025540096&scope=bot%20applications.commands"
+		class="cta-button flex items-center gap-2 rounded-lg bg-discord-blurple p-4 text-lg font-semibold text-white transition-transform hover:scale-105 hover:shadow-lg"
+		target="_blank"
 	>
 		<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 			<path
