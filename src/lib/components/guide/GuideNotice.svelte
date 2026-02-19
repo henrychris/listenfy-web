@@ -12,10 +12,10 @@
 	const isWarning = $derived(variant === 'warning');
 	const containerClass = $derived(
 		isWarning
-			? 'border-[#faa61a] bg-[rgb(250_166_26_/0.1)]'
+			? 'border-warning bg-[rgb(250_166_26_/0.1)]'
 			: 'border-spotify-green bg-[rgb(29_185_84_/0.1)]'
 	);
-	const titleClass = $derived(isWarning ? 'text-[#faa61a]' : 'text-spotify-green');
+	const titleClass = $derived(isWarning ? 'text-warning' : 'text-spotify-green');
 	const bodyClass = $derived(isWarning ? 'flex flex-col gap-2' : 'text-text-secondary');
 </script>
 

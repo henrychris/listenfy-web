@@ -49,6 +49,11 @@
 			return;
 		}
 
+		if (clientId.length !== 32) {
+			error = 'Client ID should be 32 characters long';
+			return;
+		}
+
 		if (!token) {
 			error = 'Invalid connection link. Please use /connect in Discord.';
 			return;
@@ -116,7 +121,7 @@
 					bind:value={clientId}
 					placeholder="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
 					disabled={loading || !token}
-					class="w-full rounded-lg border border-border-primary bg-command-bg p-4 px-3.5 py-3.5 font-mono text-base text-white placeholder:text-[#666] focus:border-spotify-green focus:outline-none disabled:opacity-50"
+					class="w-full rounded-lg border border-border-primary bg-command-bg p-4 font-mono text-base text-white placeholder:text-[#666] focus:border-spotify-green focus:outline-none disabled:opacity-50"
 				/>
 				<p class="text-sm text-text-secondary">
 					Find this in your Spotify Developer Dashboard under Settings

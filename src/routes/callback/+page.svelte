@@ -51,6 +51,7 @@
 			status = 'error';
 			errorType = 'state_mismatch';
 			errorMessage = errorMessages['state_mismatch'];
+			clearSession();
 			return;
 		}
 
@@ -58,6 +59,7 @@
 			status = 'error';
 			errorType = 'invalid_state';
 			errorMessage = 'Missing authentication data. Please try connecting again from Discord.';
+			clearSession();
 			return;
 		}
 
@@ -77,14 +79,9 @@
 			});
 
 			const data = await response.json();
-
 			if (response.ok) {
 				status = 'success';
-
-				// Clean up session storage
-				sessionStorage.removeItem('pkce_verifier');
-				sessionStorage.removeItem('oauth_state');
-				sessionStorage.removeItem('client_id');
+				clearSession();
 
 				// Auto-close after 5 seconds if popup
 				if (window.opener) {
@@ -104,6 +101,12 @@
 			console.error(err);
 		}
 	});
+
+	function clearSession() {
+		sessionStorage.removeItem('pkce_verifier');
+		sessionStorage.removeItem('oauth_state');
+		sessionStorage.removeItem('client_id');
+	}
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-bg-dark p-8">
