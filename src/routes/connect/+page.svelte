@@ -126,7 +126,7 @@
 			<button
 				type="submit"
 				disabled={loading || !token}
-				class="flex w-full cursor-pointer bg-spotify-green items-center justify-center gap-2 rounded-lg p-4 text-base font-semibold text-white transition hover:-translate-y-0.5  disabled:cursor-not-allowed disabled:opacity-50"
+				class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-spotify-green p-4 text-base font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{#if loading}
 					<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
