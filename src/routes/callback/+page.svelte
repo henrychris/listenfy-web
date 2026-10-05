@@ -1,103 +1,60 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { PUBLIC_API_BASE_URL, PUBLIC_REDIRECT_URL } from '$env/static/public';
+	import { resolve } from '$app/paths';
+	import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
-	let status = 'loading'; // 'loading' | 'success' | 'error'
-	let errorMessage = '';
+	let status = 'loading';
 	let errorType = '';
-
-	const errorMessages: Record<string, string> = {
-		access_denied:
-			'You declined the Spotify authorization request. To use Listenfy, you need to grant access to your Spotify listening data.',
-		invalid_state:
-			'This authorization link is invalid or has already been used. Please use /connect in Discord to generate a new link.',
-		state_mismatch:
-			'The authorization state could not be verified. This might be a security issue. Please try connecting again.',
-		token_exchange_failed:
-			"We received your authorization but couldn't complete the connection with Spotify. Please try again.",
-		unknown: 'An unexpected error occurred while connecting your Spotify account. Please try again.'
-	};
+	let errorMessage = '';
 
 	onMount(async () => {
-		const urlParams = page.url.searchParams;
-		const code = urlParams.get('code');
-		const state = urlParams.get('state');
-		const error = urlParams.get('error');
+		const params = page.url.searchParams;
+		const code = params.get('code');
+		const state = params.get('state');
+		const spotifyError = params.get('error');
 
-		// Check for explicit error from Spotify
-		if (error) {
+		if (spotifyError) {
+			errorType = spotifyError;
 			status = 'error';
-			errorType = error;
-			errorMessage = errorMessages[error] || errorMessages['unknown'];
 			return;
 		}
-
-		// Check for required parameters
 		if (!code || !state) {
-			status = 'error';
 			errorType = 'invalid_state';
-			errorMessage = errorMessages['invalid_state'];
+			status = 'error';
 			return;
 		}
 
-		// Get stored PKCE values
 		const codeVerifier = sessionStorage.getItem('pkce_verifier');
 		const savedState = sessionStorage.getItem('oauth_state');
 		const clientId = sessionStorage.getItem('client_id');
-
-		// Verify state matches
-		if (state !== savedState) {
-			status = 'error';
-			errorType = 'state_mismatch';
-			errorMessage = errorMessages['state_mismatch'];
-			clearSession();
-			return;
-		}
-
-		if (!codeVerifier || !clientId) {
-			status = 'error';
+		if (state !== savedState || !codeVerifier || !clientId) {
 			errorType = 'invalid_state';
-			errorMessage = 'Missing authentication data. Please try connecting again from Discord.';
+			status = 'error';
 			clearSession();
 			return;
 		}
 
 		try {
-			// Send to backend to complete OAuth
 			const response = await fetch(`${PUBLIC_API_BASE_URL}/spotify/oauth/complete`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					code,
-					codeVerifier,
-					clientId,
-					state
-				})
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code, codeVerifier, clientId, state })
 			});
-
-			const data = await response.json();
+			const data = await response.json().catch(() => ({}));
 			if (response.ok) {
 				status = 'success';
 				clearSession();
-
-				// Auto-close after 5 seconds if popup
-				if (window.opener) {
-					setTimeout(() => {
-						window.close();
-					}, 5000);
-				}
+				if (window.opener) setTimeout(() => window.close(), 5000);
 			} else {
+				errorType = data.error || 'connection_failed';
+				errorMessage = data.message || '';
 				status = 'error';
-				errorType = data.error || 'unknown';
-				errorMessage = data.message || errorMessages[errorType] || errorMessages['unknown'];
 			}
 		} catch (err) {
+			errorType = 'connection_failed';
+			errorMessage = 'Could not reach Listenfy. Check your connection and try again.';
 			status = 'error';
-			errorType = 'token_exchange_failed';
-			errorMessage = 'Failed to connect to the server. Please try again.';
 			console.error(err);
 		}
 	});
@@ -109,185 +66,81 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-bg-dark p-8">
-	<div
-		class="w-full max-w-2xl rounded-2xl border border-border-primary bg-bg-card p-12 text-center"
-	>
-		{#if status === 'loading'}
-			<div
-				class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full border-4 border-discord-blurple/30 bg-command-bg"
-			>
-				<svg
-					class="h-10 w-10 animate-spin text-discord-blurple"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-					></circle>
-					<path
-						class="opacity-75"
-						fill="currentColor"
-						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-					></path>
-				</svg>
-			</div>
-			<h1 class="mb-4 text-3xl font-bold">Connecting...</h1>
-			<p class="text-lg text-text-secondary">
-				Please wait while we complete your Spotify connection.
+<svelte:head><title>Listenfy — Spotify Connection</title></svelte:head>
+
+<main class="mx-auto min-h-[calc(100svh-85px)] max-w-360 px-6 py-12 md:px-15.5 md:py-13">
+	{#if status === 'loading'}
+		<section class="flex max-w-3xl flex-col gap-6" aria-live="polite">
+			<p class="eyebrow">CONNECT SPOTIFY / STEP 3 OF 3</p>
+			<h1 class="display-type text-5xl leading-[1.08] md:text-7xl md:leading-18.75">
+				Connecting your account…
+			</h1>
+			<p class="text-lg leading-8 md:text-[21px] md:leading-8.25">
+				Spotify sent you back to Listenfy. We’re finishing the connection now. Keep this page open
+				for a moment.
 			</p>
-		{:else if status === 'success'}
-			<div
-				class="gradient animate-scale-in mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full border border-spotify-green/30 text-5xl"
-			>
-				✓
-			</div>
-			<h1 class="mb-4 text-3xl font-bold text-spotify-green">Spotify Connected!</h1>
-			<p class="mb-8 text-lg text-text-secondary">
-				Your Spotify account has been successfully linked to Listenfy. You're all set!
+			<p class="border-t-3 border-warning pt-4 font-semibold" role="status">
+				Waiting for confirmation from Listenfy…
 			</p>
-
-			<div class="mb-8 flex flex-col gap-4 rounded-xl bg-spotify-green/5 p-6 text-left">
-				<div class="flex items-start gap-3">
-					<span class="shrink-0 text-2xl">📊</span>
-					<span class="text-text-secondary">
-						Use <span class="font-semibold text-white">/stats</span> in Discord to see your listening
-						history
-					</span>
-				</div>
-				<div class="flex items-start gap-3">
-					<span class="shrink-0 text-2xl">📅</span>
-					<span class="text-text-secondary">Participate in weekly server stats summaries</span>
-				</div>
-				<div class="flex items-start gap-3">
-					<span class="shrink-0 text-2xl">🔓</span>
-					<span class="text-text-secondary">
-						Disconnect anytime with <span class="font-semibold text-white">/disconnect</span>
-					</span>
-				</div>
-			</div>
-
-			<div class="flex flex-wrap justify-center gap-4">
-				<a
-					href="discord://-"
-					class="rounded-lg bg-discord-blurple px-8 py-3 font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(117,0,247,0.3)]"
-				>
-					Return to Discord
-				</a>
-				<a
-					href="/"
-					class="rounded-lg border-2 border-text-secondary bg-transparent px-8 py-3 font-semibold text-text-secondary transition-all hover:bg-white/5"
-				>
-					Back to Home
-				</a>
-			</div>
-
-			<p class="mt-8 text-sm text-[#666]">
-				You can safely close this window and return to Discord.
+		</section>
+	{:else if status === 'success'}
+		<section class="flex max-w-3xl flex-col gap-6" aria-live="polite">
+			<p class="eyebrow">CONNECTION COMPLETE</p>
+			<h1 class="display-type text-5xl leading-[1.08] md:text-7xl md:leading-18.75">
+				You’re connected.
+			</h1>
+			<p class="text-lg leading-8 md:text-[21px] md:leading-8.25">
+				Your Spotify account is connected to Listenfy. You can close this page and return to
+				Discord. Look for a confirmation in your DMs; your first stats may take a few minutes.
 			</p>
-		{:else if status === 'error'}
-			<div
-				class="animate-shake mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-red-500 text-5xl text-white"
-			>
-				✕
+			<div class="border-t-3 border-warning pt-4 text-base leading-7">
+				<p class="font-bold">What can I do next?</p>
+				<p>
+					In Discord, run <code class="command">/personalstats</code> to see your listening or
+					<code class="command">/serverstats</code> to see the server’s.
+				</p>
 			</div>
-			<h1 class="mb-4 text-3xl font-bold text-red-400">Connection Failed</h1>
-			<p class="mb-8 text-lg text-text-secondary">{errorMessage}</p>
-
-			{#if errorType && errorType !== 'access_denied'}
-				<div class="mb-8 rounded-lg border-l-4 border-red-500 bg-red-500/10 p-4 text-left">
-					<div class="font-mono text-sm text-red-400">Error: {errorType}</div>
-				</div>
+		</section>
+	{:else}
+		<section class="flex max-w-3xl flex-col gap-6" role="alert">
+			<p class="eyebrow">CONNECTION NOT COMPLETED</p>
+			{#if errorType === 'access_denied'}
+				<h1 class="display-type text-5xl leading-[1.08] md:text-7xl md:leading-18.75">
+					Spotify access wasn’t approved.
+				</h1>
+				<p class="text-lg leading-8 md:text-[21px] md:leading-8.25">
+					Nothing was connected. To try again, run <code class="command">/connect</code> in Discord, open
+					the new link, and approve access on Spotify.
+				</p>
+			{:else if errorType === 'invalid_state' || errorType === 'state_mismatch'}
+				<h1 class="display-type text-5xl leading-[1.08] md:text-7xl md:leading-18.75">
+					This link can’t be used.
+				</h1>
+				<p class="text-lg leading-8 md:text-[21px] md:leading-8.25">
+					The connection could not be verified. Return to Discord, run <code class="command"
+						>/connect</code
+					>, and open the new link in the same browser.
+				</p>
+			{:else}
+				<h1 class="display-type text-5xl leading-[1.08] md:text-7xl md:leading-18.75">
+					We couldn’t finish connecting.
+				</h1>
+				<p class="text-lg leading-8 md:text-[21px] md:leading-8.25">
+					Return to Discord and run <code class="command">/connect</code> for a new link. If it
+					happens again, check your Client ID and Redirect URI in the
+					<a
+						href={resolve('/guide')}
+						class="font-semibold underline decoration-warning underline-offset-4">setup guide</a
+					>.
+				</p>
 			{/if}
-
-			<div class="mb-8 flex flex-col gap-4 rounded-xl bg-white/5 p-6 text-left">
-				<h3 class="text-lg font-semibold">Try these solutions:</h3>
-				<div class="flex items-start gap-3">
-					<span
-						class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-discord-blurple text-sm font-bold"
-						>1</span
-					>
-					<span class="text-text-secondary">
-						Go back to Discord and use <span class="font-semibold text-white">/connect</span> to get a
-						fresh link
-					</span>
-				</div>
-				<div class="flex items-start gap-3">
-					<span
-						class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-discord-blurple text-sm font-bold"
-						>2</span
-					>
-					<span class="text-text-secondary">
-						Make sure you clicked "Agree" on the Spotify authorization page
-					</span>
-				</div>
-				<div class="flex items-start gap-3">
-					<span
-						class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-discord-blurple text-sm font-bold"
-						>3</span
-					>
-					<span class="text-text-secondary">
-						Verify your Client ID is correct and your app's redirect URI is set to:
-						<span class="font-semibold break-all text-white">{PUBLIC_REDIRECT_URL}</span>
-					</span>
-				</div>
-				<div class="flex items-start gap-3">
-					<span
-						class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-discord-blurple text-sm font-bold"
-						>4</span
-					>
-					<span class="text-text-secondary"
-						>Try using a different browser if the issue persists</span
-					>
-				</div>
-			</div>
-
-			<div class="flex flex-wrap justify-center gap-4">
-				<a
-					href="discord://-"
-					class="rounded-lg bg-discord-blurple px-8 py-3 font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(117,0,247,0.3)]"
-				>
-					Return to Discord
-				</a>
-				<a
-					href="/"
-					class="rounded-lg border-2 border-text-secondary bg-transparent px-8 py-3 font-semibold text-text-secondary transition-all hover:bg-white/5"
-				>
-					Back to Home
-				</a>
-			</div>
-		{/if}
-	</div>
-</div>
-
-<style>
-	@keyframes scale-in {
-		from {
-			transform: scale(0);
-		}
-		to {
-			transform: scale(1);
-		}
-	}
-
-	.animate-scale-in {
-		animation: scale-in 0.5s ease;
-	}
-
-	@keyframes shake {
-		0%,
-		100% {
-			transform: translateX(0);
-		}
-		25% {
-			transform: translateX(-10px);
-		}
-		75% {
-			transform: translateX(10px);
-		}
-	}
-
-	.animate-shake {
-		animation: shake 0.5s ease;
-	}
-</style>
+			<p class="border-t-3 border-warning pt-4 text-base leading-7">
+				You can close this page now. This attempt did not confirm a connection.
+			</p>
+			{#if errorMessage}<details class="text-sm text-text-secondary">
+					<summary class="cursor-pointer">Technical details</summary>
+					<p class="mt-2 break-words">{errorMessage}</p>
+				</details>{/if}
+		</section>
+	{/if}
+</main>

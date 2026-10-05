@@ -1,164 +1,146 @@
 <script lang="ts">
 	import { PUBLIC_REDIRECT_URL } from '$env/static/public';
-	import GuideCheckItem from '$lib/components/guide/GuideCheckItem.svelte';
-	import GuideHero from '$lib/components/guide/GuideHero.svelte';
-	import GuideNotice from '$lib/components/guide/GuideNotice.svelte';
-	import GuideStep from '$lib/components/guide/GuideStep.svelte';
+
+	let copyState = $state<'idle' | 'copied' | 'error'>('idle');
+	let resetTimer: ReturnType<typeof setTimeout>;
+
+	async function copyRedirectUri() {
+		clearTimeout(resetTimer);
+		try {
+			await navigator.clipboard.writeText(PUBLIC_REDIRECT_URL);
+			copyState = 'copied';
+		} catch {
+			copyState = 'error';
+		}
+		resetTimer = setTimeout(() => (copyState = 'idle'), 1500);
+	}
 </script>
 
 <svelte:head>
-	<title>Listenfy - Setup Guide</title>
-	<meta name="description" content="Setup guide for Listenfy." />
+	<title>Listenfy — Setup Guide</title>
+	<meta
+		name="description"
+		content="Create your Spotify app, copy its Client ID, and connect it to Listenfy."
+	/>
 </svelte:head>
 
-<main class="mx-auto flex w-full max-w-225 flex-col gap-4 p-4">
-	<GuideHero
-		title="Setup Guide"
-		subtitle="Follow these steps to connect your Spotify account to Listenfy"
-	/>
+<main class="mx-auto min-h-[calc(100svh-85px)] max-w-360">
+	<aside class="border-t-3 border-warning px-6 py-5 md:px-15">
+		<p class="eyebrow">BEFORE YOU START / SPOTIFY PREMIUM</p>
+		<p class="mt-2 max-w-5xl text-base leading-7">
+			You need an active Spotify Premium subscription to create the app used for this connection.
+			Listenfy only asks for the app’s Client ID.
+		</p>
+	</aside>
 
-	<GuideNotice title="Why do I need to create a Spotify app?">
-		<p>
-			Due to Spotify's API restrictions, each user needs their own Spotify developer application.
-			This is a one-time setup that takes about 5 minutes. Don't worry - it's completely free and
-			you don't need any coding knowledge!
-		</p>
-	</GuideNotice>
-
-	<GuideStep step={1} title="Go to Spotify Developer Dashboard">
-		<p class="text-text-secondary">
-			Open your browser and navigate to the Spotify Developer Dashboard.
-		</p>
-		<a
-			href="https://developer.spotify.com/dashboard"
-			target="_blank"
-			rel="noreferrer"
-			class="w-fit rounded-lg bg-spotify-green px-8 py-3 text-base font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(29,185,84,0.3)]"
-		>
-			Open Spotify Dashboard
-		</a>
-		<p class="text-sm text-text-secondary">
-			You'll need to log in with your Spotify account. If you don't have one, you'll need to create
-			a Spotify account first <strong>and</strong> get a Premium subscription.
-		</p>
-	</GuideStep>
-
-	<GuideStep step={2} title="Create a New App">
-		<p class="text-text-secondary">
-			Once logged in, click the <span class="font-semibold text-white">"Create app"</span>
-			button on the dashboard.
-		</p>
-		<img
-			class="w-full rounded-lg border border-border-primary"
-			src="https://res.cloudinary.com/dit0zbles/image/upload/t_to_webp/v1771428264/developer.spotify.com_dashboard_zm2i1c.webp"
-			alt="Create app button"
-		/>
-	</GuideStep>
-
-	<GuideStep step={3} title="Fill in App Details">
-		<p class="text-text-secondary">Fill in the form with the following information:</p>
-		<ul class="flex flex-col gap-2">
-			<GuideCheckItem>
-				<strong>App name:</strong> Any name you like (e.g., "My Listenfy App")
-			</GuideCheckItem>
-			<GuideCheckItem>
-				<strong>App description:</strong> Any description (e.g., "For Discord stats tracking")
-			</GuideCheckItem>
-			<GuideCheckItem><strong>Website:</strong> Leave blank or put any URL</GuideCheckItem>
-			<GuideCheckItem>
-				<strong>Redirect URI:</strong> This is the important one! (see below)
-			</GuideCheckItem>
-		</ul>
-	</GuideStep>
-
-	<GuideStep step={4} title="Add the Redirect URI">
-		<p class="text-text-secondary">
-			In the <strong>Redirect URI</strong> field, enter exactly this URL (copy/paste recommended):
-		</p>
-		<div
-			class="rounded-lg border border-border-primary bg-command-bg px-4 py-3 font-mono text-sm break-all"
-		>
-			{PUBLIC_REDIRECT_URL}
-		</div>
-		<GuideNotice variant="warning">
-			<p>
-				<strong class="text-warning">⚠️ Important:</strong> The redirect URI must match
-				<em>exactly</em>. Make sure there are no:
-			</p>
-			<ul class="flex list-disc flex-col gap-1 pl-6 text-sm text-text-secondary">
-				<li>Extra spaces before or after</li>
-				<li>Trailing slashes at the end</li>
-				<li>Different protocols (http vs https)</li>
-			</ul>
-		</GuideNotice>
-		<p class="text-text-secondary">
-			Then check the box for <strong>"Web API"</strong> under "Which API/SDKs are you planning to use?"
-		</p>
-	</GuideStep>
-
-	<GuideStep step={5} title="Save and Get Your Client ID">
-		<p class="text-text-secondary">
-			Click <strong>"Save"</strong> to create your app. You'll be taken to your app's settings page.
-		</p>
-		<p class="text-text-secondary">
-			Click on <strong>"Settings"</strong> in the top right, then find your
-			<strong>Client ID</strong>. It looks something like this:
-		</p>
-		<div
-			class="rounded-lg border border-border-primary bg-command-bg px-4 py-3 font-mono text-sm break-all"
-		>
-			a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
-		</div>
-		<p class="text-text-secondary">
-			Click the <strong>"Copy"</strong> button next to your Client ID to copy it to your clipboard.
-		</p>
-		<GuideNotice variant="warning">
-			<p>
-				<strong class="text-warning">Note:</strong> You do NOT need the Client Secret. Only copy the Client
-				ID.
-			</p>
-		</GuideNotice>
-
-		<img
-			class="w-full rounded-lg border border-border-primary"
-			src="https://res.cloudinary.com/dit0zbles/image/upload/t_to_webp/v1771428269/developer.spotify.com_dashboard_6853e5f8771b4ba79f52d87d6ef08ab9_bmlmsg.webp"
-			alt="Create app button"
-		/>
-	</GuideStep>
-
-	<GuideStep step={6} title="Connect in Discord">
-		<p class="text-text-secondary">Now go back to Discord and run the command:</p>
-		<div class="rounded-lg border border-border-primary bg-command-bg px-4 py-3 font-mono text-sm">
-			/connect
-		</div>
-		<p class="text-text-secondary">
-			The bot will send you a link. Click it and paste your Client ID when prompted. That's it!
+	<div class="px-6 py-8 md:px-15 md:py-12">
+		<p class="eyebrow">THE PRACTICAL EDITION / 01–06</p>
+		<h1 class="display-type mt-5 max-w-4xl text-[40px] leading-11.25 md:text-7xl md:leading-19.5">
+			Set up Spotify for Listenfy.
+		</h1>
+		<p class="mt-5 max-w-3xl text-lg leading-8">
+			Spotify asks you to create a developer app before you connect. Follow these steps once. You
+			won’t need to write code.
 		</p>
 
-		<img
-			class="w-full rounded-lg border border-border-primary"
-			src="https://res.cloudinary.com/dit0zbles/image/upload/t_to_webp/v1771428462/localhost_5173_connect_token_xxx_yobfec.webp"
-			alt="Create app button"
-		/>
-	</GuideStep>
+		<ol class="mt-10 border-t border-border-primary">
+			<li class="grid gap-3 border-b border-border-primary py-7 sm:grid-cols-[58px_1fr]">
+				<span class="text-xl font-extrabold text-warning">01</span>
+				<div class="max-w-3xl">
+					<h2 class="text-xl font-bold">Open the Spotify Developer Dashboard</h2>
+					<p class="mt-2 leading-7">Sign in with your Premium Spotify account.</p>
+					<a
+						href="https://developer.spotify.com/dashboard"
+						target="_blank"
+						rel="noreferrer"
+						class="mt-4 inline-block bg-warning px-5 py-3 font-bold text-white hover:bg-[#7e4b2f]"
+						>Open Spotify Dashboard ↗</a
+					>
+				</div>
+			</li>
 
-	<GuideStep step={7} title="You're All Set! 🎉">
-		<p class="text-text-secondary">Once connected, you can:</p>
-		<ul class="flex flex-col gap-2">
-			<GuideCheckItem>
-				Use
-				<span class="rounded bg-command-bg px-2 py-0.5 font-mono text-sm text-spotify-green">
-					/stats
-				</span>
-				to view your listening history
-			</GuideCheckItem>
-			<GuideCheckItem>Participate in weekly server stats</GuideCheckItem>
-			<GuideCheckItem>
-				Disconnect anytime with
-				<span class="rounded bg-command-bg px-2 py-0.5 font-mono text-sm text-spotify-green">
-					/disconnect
-				</span>
-			</GuideCheckItem>
-		</ul>
-	</GuideStep>
+			<li class="grid gap-3 border-b border-border-primary py-7 sm:grid-cols-[58px_1fr]">
+				<span class="text-xl font-extrabold text-warning">02</span>
+				<div class="max-w-3xl">
+					<h2 class="text-xl font-bold">Create your app</h2>
+					<p class="mt-2 leading-7">
+						Click <strong>Create app</strong>. Give it any name and short description, such as “My
+						Listenfy connection.” Select <strong>Web API</strong> when Spotify asks which API you’ll use.
+					</p>
+				</div>
+			</li>
+
+			<li class="grid gap-3 border-b border-border-primary py-7 sm:grid-cols-[58px_1fr]">
+				<span class="text-xl font-extrabold text-warning">03</span>
+				<div class="max-w-4xl min-w-0">
+					<h2 class="text-xl font-bold">Add the Redirect URI</h2>
+					<p class="mt-2 leading-7">
+						Find the <strong>Redirect URIs</strong> field in Spotify. Copy the address below and paste
+						it exactly. If you already created the app, add it in your app’s Settings.
+					</p>
+					<div class="mt-4 bg-bg-card p-5">
+						<p class="eyebrow">REDIRECT URI / COPY EXACTLY</p>
+						<code class="mt-3 block font-mono text-sm leading-6 break-all md:text-lg"
+							>{PUBLIC_REDIRECT_URL}</code
+						>
+						<button
+							type="button"
+							onclick={copyRedirectUri}
+							class="mt-4 border border-border-primary px-4 py-2 font-bold hover:bg-[#d4c7b6]"
+							>{copyState === 'copied' ? 'Copied' : 'Copy URI'}</button
+						>
+						<p aria-live="polite" class="mt-2 text-sm leading-6">
+							{#if copyState === 'copied'}
+								Paste it into Spotify’s Redirect URIs field.
+							{:else if copyState === 'error'}
+								Copy failed. Select the address above and copy it manually.
+							{:else}
+								The address must match exactly, including the ending <code>/callback</code>.
+							{/if}
+						</p>
+					</div>
+				</div>
+			</li>
+
+			<li class="grid gap-3 border-b border-border-primary py-7 sm:grid-cols-[58px_1fr]">
+				<span class="text-xl font-extrabold text-warning">04</span>
+				<div class="max-w-3xl">
+					<h2 class="text-xl font-bold">Save the app and copy its Client ID</h2>
+					<p class="mt-2 leading-7">
+						Accept Spotify’s developer terms and create or save the app. Open its
+						<strong>Settings</strong> and copy the <strong>Client ID</strong>. Leave the Client
+						Secret private; you won’t enter it on Listenfy.
+					</p>
+				</div>
+			</li>
+
+			<li class="grid gap-3 border-b border-border-primary py-7 sm:grid-cols-[58px_1fr]">
+				<span class="text-xl font-extrabold text-warning">05</span>
+				<div class="max-w-3xl">
+					<h2 class="text-xl font-bold">Return to Discord</h2>
+					<p class="mt-2 leading-7">
+						Run <code class="command">/connect</code> in your Discord server and open the new link Listenfy
+						sends you. Paste your Client ID into the Listenfy page.
+					</p>
+				</div>
+			</li>
+
+			<li class="grid gap-3 border-b border-border-primary py-7 sm:grid-cols-[58px_1fr]">
+				<span class="text-xl font-extrabold text-warning">06</span>
+				<div class="max-w-3xl">
+					<h2 class="text-xl font-bold">Approve the connection on Spotify</h2>
+					<p class="mt-2 leading-7">
+						Choose <strong>Continue to Spotify</strong>, then approve access. When Listenfy says
+						“You’re connected,” return to Discord. Your first stats may take a few minutes.
+					</p>
+				</div>
+			</li>
+		</ol>
+
+		<p class="mt-8 max-w-4xl text-lg leading-8">
+			Once stats are ready, use <code class="command">/personalstats</code> for your listening or
+			<code class="command">/serverstats</code> for the server. An admin can use
+			<code class="command">/setchannel</code> to choose where weekly posts appear.
+		</p>
+	</div>
 </main>
