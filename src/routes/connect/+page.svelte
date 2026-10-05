@@ -1,21 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { PUBLIC_REDIRECT_URL } from '$env/static/public';
 
 	let clientId = $state('');
 	let loading = $state(false);
 	let error = $state('');
-	let token = $state('');
-
-	onMount(() => {
-		// Get the state token from URL
-		token = page.url.searchParams.get('token') || '';
-
-		if (!token) {
-			error = 'Invalid connection link. Please use /connect in Discord to get a new link.';
-		}
-	});
+	let token = $derived(page.url.searchParams.get('token') ?? '');
 
 	function base64urlEncode(array: Uint8Array) {
 		return btoa(String.fromCharCode(...array))
@@ -44,13 +35,13 @@
 
 	async function handleConnect(e: SubmitEvent) {
 		e.preventDefault();
-		if (!clientId.trim()) {
-			error = 'Please enter your Spotify Client ID';
+		const id = clientId.trim();
+		if (!id) {
+			error = 'Enter the Client ID from your Spotify app.';
 			return;
 		}
 
 		if (!token) {
-			error = 'Invalid connection link. Please use /connect in Discord.';
 			return;
 		}
 
@@ -63,11 +54,11 @@
 			// Store in sessionStorage temporarily
 			sessionStorage.setItem('pkce_verifier', codeVerifier);
 			sessionStorage.setItem('oauth_state', token);
-			sessionStorage.setItem('client_id', clientId);
+			sessionStorage.setItem('client_id', id);
 
 			// Redirect to Spotify
 			const params = new URLSearchParams({
-				client_id: clientId,
+				client_id: id,
 				response_type: 'code',
 				redirect_uri: PUBLIC_REDIRECT_URL,
 				scope: 'user-read-recently-played user-read-private',
@@ -85,55 +76,74 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center p-4">
-	<div class="flex max-w-125 flex-col gap-6 rounded-xl border border-border-primary bg-bg-card p-8">
-		<div class="flex flex-col gap-1 text-center">
-			<h1 class="text-2xl font-bold">Connect Your Spotify</h1>
-			<p class="text-text-secondary">Enter your Spotify Client ID to continue</p>
-		</div>
+<svelte:head>
+	<title>Listenfy — Connect Spotify</title>
+</svelte:head>
 
-		<div
-			class="rounded-lg border-l-4 border-spotify-green bg-spotify-green/15 p-4 text-sm text-text-secondary"
+<main
+	class="mx-auto flex min-h-[calc(100svh-85px)] max-w-360 flex-col gap-10 px-6 py-12 md:px-15.5 md:py-12.5"
+>
+	{#if token}
+		<section class="flex max-w-3xl flex-col gap-5">
+			<p class="eyebrow">CONNECT SPOTIFY / STEP 2 OF 3</p>
+			<h1 class="display-type text-5xl leading-[1.08] md:text-7xl md:leading-18.75">
+				Enter your Spotify Client ID.
+			</h1>
+			<p class="text-lg leading-8 md:text-[21px] md:leading-8.25">
+				Paste the Client ID from your Spotify developer app. Then you’ll approve the connection on
+				Spotify.
+			</p>
+		</section>
+
+		<form
+			onsubmit={handleConnect}
+			class="flex max-w-2xl flex-col gap-4 border border-border-primary p-5 md:p-6"
 		>
-			Don't have a Client ID yet?
-			<a href="/guide" target="_blank" class="text-spotify-green hover:underline">
-				Follow our setup guide →
-			</a>
-		</div>
-
-		{#if error}
-			<div class="rounded-lg border-l-4 border-red-500 bg-red-500/15 p-4 text-sm text-red-400">
-				{error}
-			</div>
-		{/if}
-
-		<form onsubmit={handleConnect} class="flex flex-col gap-6">
-			<div class="flex flex-col gap-2">
-				<label for="clientId" class="text-sm font-semibold">Spotify Client ID</label>
-				<input
-					id="clientId"
-					type="text"
-					bind:value={clientId}
-					placeholder="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
-					disabled={loading || !token}
-					class="w-full rounded-lg border border-border-primary bg-command-bg p-4 font-mono text-base text-white placeholder:text-[#666] focus:border-spotify-green focus:outline-none disabled:opacity-50"
-				/>
-				<p class="text-sm text-text-secondary">
-					Find this in your Spotify Developer Dashboard under Settings
-				</p>
-			</div>
-
+			<label for="clientId" class="eyebrow">SPOTIFY CLIENT ID</label>
+			<input
+				id="clientId"
+				name="clientId"
+				autocomplete="off"
+				type="text"
+				bind:value={clientId}
+				placeholder="Paste your Client ID"
+				disabled={loading}
+				class="border-2 border-border-primary bg-transparent p-4 text-base placeholder:text-text-secondary disabled:opacity-50"
+			/>
+			{#if error}<p role="alert" class="font-semibold text-warning">{error}</p>{/if}
 			<button
 				type="submit"
-				disabled={loading || !token}
-				class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-spotify-green p-4 text-base font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+				disabled={loading}
+				class="bg-warning px-5 py-4 text-left font-bold text-white hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
 			>
-				{#if loading}
-					<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-					></span>
-				{/if}
-				{loading ? 'Connecting...' : 'Continue to Spotify'}
+				{loading ? 'Opening Spotify…' : 'Continue to Spotify →'}
 			</button>
+			<p class="text-sm leading-6">
+				Need help finding your Client ID? <a
+					href={resolve('/guide')}
+					class="font-semibold underline decoration-warning underline-offset-4"
+					>Follow the setup guide</a
+				>.
+			</p>
 		</form>
-	</div>
-</div>
+	{:else}
+		<section role="alert" class="flex max-w-3xl flex-col gap-5 border-t-3 border-warning pt-5">
+			<p class="eyebrow">CONNECTION LINK NEEDED</p>
+			<h1 class="display-type text-5xl leading-[1.08] md:text-7xl md:leading-18.75">
+				Start in Discord.
+			</h1>
+			<p class="text-lg leading-8 md:text-[21px] md:leading-8.25">
+				This page needs a link from Listenfy before you can enter your Client ID. In your Discord
+				server, run <code class="command">/connect</code> and open the link it sends you.
+			</p>
+			<p class="text-base leading-7">
+				Already used a link? Run <code class="command">/connect</code> again for a fresh one.
+			</p>
+			<a
+				href={resolve('/guide')}
+				class="w-fit font-semibold underline decoration-warning underline-offset-4"
+				>See the full setup guide →</a
+			>
+		</section>
+	{/if}
+</main>

@@ -2,18 +2,17 @@
 	const year = new Date().getFullYear();
 </script>
 
-<footer
-	class="flex flex-col gap-4 border-t border-border-primary p-12 text-center text-text-secondary"
->
-	<div class="mx-auto w-full max-w-4xl">
-		<p>&copy; {year} Listenfy. Not affiliated with Spotify or Discord.</p>
-		<div class="flex justify-center gap-4">
+<footer class="border-t border-border-primary px-6 py-8 text-sm text-text-secondary md:px-14">
+	<div class="mx-auto flex max-w-329 flex-col justify-between gap-3 sm:flex-row">
+		<p>© {year} Listenfy. Not affiliated with Spotify or Discord.</p>
+		<div class="flex gap-5 md:gap-8">
 			<a
-				href="https://discord.gg/drc55k7Vqr"
-				class=" text-text-secondary transition-colors hover:text-text-primary"
+				href="https://github.com/henrychris/listenfy-web"
+				target="_blank"
+				rel="noreferrer"
+				class="hover:text-border-primary">GitHub</a
 			>
-				Support
-			</a>
+			<a href="https://discord.gg/drc55k7Vqr" class="hover:text-border-primary">Support</a>
 		</div>
 	</div>
 </footer>
