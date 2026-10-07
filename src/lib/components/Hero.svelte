@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { PUBLIC_DISCORD_CLIENT_ID } from '$env/static/public';
+	import RecordDisc from './RecordDisc.svelte';
 
 	const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${PUBLIC_DISCORD_CLIENT_ID}&permissions=277025540096&scope=bot%20applications.commands`;
 </script>
@@ -39,14 +40,7 @@
 	</div>
 
 	<div class="flex min-w-0 flex-col items-start gap-6">
-		<div
-			aria-hidden="true"
-			class="flex aspect-square w-[min(72vw,275px)] items-center justify-center rounded-full border-18 border-warning bg-border-primary md:w-107.5"
-		>
-			<div class="flex h-3/10 w-3/10 items-center justify-center rounded-full bg-[#eee9df]">
-				<span class="display-type text-[28px] md:text-[42px]">L.</span>
-			</div>
-		</div>
+		<RecordDisc />
 		<div class="w-full text-[15px] leading-6.25 md:text-[19px] md:leading-7.25">
 			<p>EXAMPLE WEEKLY RECAP / #AFTERHOURS</p>
 			<p>01 @henry · 1,248 min · top track: Pink + White — Frank Ocean (42 plays)</p>
